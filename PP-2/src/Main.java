@@ -4,25 +4,48 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/* ---------------------------------------------------
+-- Паралельне програмування                         --
+--                                                  --
+-- Лабораторна робота №2                            --
+--                                                  --
+-- Функція:                                         --
+-- X = sort(d*B + Z*(MM*MX))* min(B)                --
+--                                                  --
+-- Виконав: Бондаренко Тарас Андрійович             --
+-- Група: ІО-24                                     --
+-- Дата: 29.10.2024                                 --
+--------------------------------------------------- */
+
 public class Main {
     private static final int p = 4;
 
-    public static final CyclicBarrier B = new CyclicBarrier(p);
+    // Бар'єр для визначення закінчення даних
+    public static final CyclicBarrier barrier1 = new CyclicBarrier(p);
+
+    // Семафора для керування доступом до введеня даних
     public static final Semaphore S01 = new Semaphore(1);
 
+    // Критична секція для керування доступом до спільного ресурсу d
     public static final Lock CS1 = new ReentrantLock();
+
+    // Критична секція для керування доступом до спільного ресурсу Z
     public static final Lock CS2 = new ReentrantLock();
+
+    // Семафора для керування доступом до спільного ресурсу MM
     public static final Semaphore S02 = new Semaphore(1);
 
+    // Семафори для взаємодії потоків
     public static final Semaphore S1 = new Semaphore(0);
     public static final Semaphore S2 = new Semaphore(0);
     public static final Semaphore S3 = new Semaphore(0);
     public static final Semaphore S4 = new Semaphore(0);
-    public static final Semaphore S5 = new Semaphore(1);
-    public static final Semaphore S6 = new Semaphore(1);
+    public static final Semaphore S5 = new Semaphore(0); // 1
+    public static final Semaphore S6 = new Semaphore(0); // 1
     public static final Semaphore S7 = new Semaphore(0);
-    public static final Semaphore S8 = new Semaphore(0, true);
-    public static final Semaphore S9 = new Semaphore(0);
+    public static final Semaphore S8 = new Semaphore(0);
+
+    public static final CyclicBarrier barrier2 = new CyclicBarrier(p);
 
     public static void main(String[] args) {
 
@@ -48,6 +71,7 @@ public class Main {
 
             long startTime = System.nanoTime();
 
+            //Запуск потоків
             T1.start();
             T2.start();
             T3.start();

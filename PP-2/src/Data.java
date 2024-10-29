@@ -1,7 +1,4 @@
-import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 public class Data {
     public static int[][] fillMatrix(int n, int value) {
@@ -24,11 +21,11 @@ public class Data {
         return vector;
     }
 
-    public static int[] fillVectorByReverseInc(int n) {
+    public static int[] fillReverseVector(int n) {
         int[] vector = new int[n];
 
         for (int i = 0; i < n; i++) {
-            vector[i] = (n + 1) - i;
+            vector[i] = n + - i;
         }
 
         return vector;
@@ -118,7 +115,6 @@ public class Data {
     public static int[] vectorSum(int[] vector1, int[] vector2) {
         int[] result = new int[vector1.length];
 
-        // Perform element-wise addition
         for (int i = 0; i < vector1.length; i++) {
             result[i] = vector1[i] + vector2[i];
         }
@@ -140,10 +136,28 @@ public class Data {
         System.arraycopy(vector1, 0, result, 0, vector2.length);
         System.arraycopy(vector2, 0, result, vector1.length, vector2.length);
 
-        Arrays.sort(result);
+        return sortVector(result);
+    }
+
+    public static int[] showFinalResult(int[] vector1, int[] vector2, int[] vector3, int[] vector4) {
+        int totalLength = vector1.length + vector2.length + vector3.length + vector4.length;
+        int[] result = new int[totalLength];
+
+        int index = 0;
+
+        for (int value : vector1) {
+            result[index++] = value;
+        }
+        for (int value : vector2) {
+            result[index++] = value;
+        }
+        for (int value : vector3) {
+            result[index++] = value;
+        }
+        for (int value : vector4) {
+            result[index++] = value;
+        }
 
         return result;
     }
-
-
 }

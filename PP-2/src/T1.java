@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.concurrent.BrokenBarrierException;
 
 public class T1 extends Thread {
@@ -13,72 +12,79 @@ public class T1 extends Thread {
         this.commonResources = commonResources;
         this.setPriority(priority);
         this.startPosition = 0;
-        this.endPosition = this.startPosition + h;
+        this.endPosition = startPosition + h;
     }
 
     @Override
     public void run() {
-        int scalarMi;
-        int scalarD1;
-        int[] vectorZ1;
-        int[][] matrixM1;
-        int[] vectorKH;
-        int[] vectorK2H;
 
         System.out.printf("\nThread %s started\n", name);
 
         try {
-            Main.B.await();
+            // Чекати на введення даних в інших потоках
+            Main.barrier1.await();
 
-            scalarMi = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.getVectorB()));
+            // Обчислення 1: mi = min(BH)
+            int scalarMi = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
 
+            // Обчислення 2: m = min(m, mi)
             if (scalarMi < commonResources.getM().get()) {
                 commonResources.getM().set(scalarMi);
             }
 
+            // Сигнал задачам T2, T3, T4 про обчислення 2
             Main.S1.release(3);
 
+            // Чекати сигнал про обчислення m у задачах T2, T3, T4
             Main.S2.acquire();
             Main.S3.acquire();
             Main.S4.acquire();
 
+            // Копіювання: d1 = d
             Main.CS1.lock();
-            scalarD1 = commonResources.getScalarD();
+            int scalarD1 = commonResources.scalarD;
             Main.CS1.unlock();
 
+            // Копіювання: Z1 = Z
             Main.CS2.lock();
-            vectorZ1 = commonResources.getVectorZ();
+            int[] vectorZ1 = commonResources.vectorZ;
             Main.CS2.unlock();
 
+            // Копіювання: MM1 = MM
             Main.S02.acquire();
-            matrixM1 = commonResources.getMatrixM();
+            int[][] matrixM1 = commonResources.matrixM;
             Main.S02.release();
 
-            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD1, Data.getPartOfVector(startPosition, endPosition, commonResources.getVectorB())), Data.vectorMatrixMultiply(vectorZ1, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.getMatrixX(), startPosition, endPosition), matrixM1))));
+            // Обчислення 3: RH = d1 * BH + Z1 * (MM1 * MXH)
+            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD1, Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB)), Data.vectorMatrixMultiply(vectorZ1, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.matrixX, startPosition, endPosition), matrixM1))));
 
-            vectorKH = Data.sortVector(vectorRH);
+            // Обчислення 4: KH = sort(RH)
+            int[] vectorKH = Data.sortVector(vectorRH);
 
+            // Очікувати на закінчення обчислення 4 в задачі Т2
             Main.S5.acquire();
 
-            vectorK2H = Data.concatAndSort(vectorKH, commonResources.vectorKH1_1);
+            // Обчислення 5: K2H = msort(KH, KH)
+            int[] vectorK2H = Data.concatAndSort(vectorKH, commonResources.vectorKH1_1);
 
+            // Очікувати на закінчення обчислення 5 в Т3
             Main.S7.acquire();
 
+            // Обчислення 6: K = msort(K2H, K2H)
             commonResources.vectorK = Data.concatAndSort(vectorK2H, commonResources.vectorKH2_1);
 
+            // Сигнал T2, T3, T4 задачам про обчислення 6
             Main.S8.release(3);
 
+            // Обчислення 7: XH = KH * m
             commonResources.vectorXH_1 = Data.scalarVectorMultiply(commonResources.getM().get(), Data.getPartOfVector(startPosition, endPosition, commonResources.vectorK));
 
-            Main.S9.release();
+            // Очікувати на закінчення обчислення 7 в T2, T3, T4
+            Main.barrier2.await();
 
-            System.out.println("Thread 1 Result: " + Arrays.toString(commonResources.vectorXH_1));
-
+            System.out.printf("\n%s is finished\n", name);
         } catch (InterruptedException | BrokenBarrierException e) {
-            throw new RuntimeException(e);
+            System.out.println("Error in Thread 2 - " + e.getMessage());
         }
-
-        System.out.println("Thread 1 is finished");
-
     }
 }
