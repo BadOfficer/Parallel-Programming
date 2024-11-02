@@ -6,16 +6,13 @@ public class T2 extends Thread {
     private final CommonResources commonResources;
     private final int startPosition;
     private final int endPosition;
-    private final Scanner scanner;
 
-
-    public T2(String name, CommonResources commonResources, int priority, int h, Scanner scanner) {
+    public T2(String name, CommonResources commonResources, int priority, int h) {
         this.name = name;
         this.commonResources = commonResources;
         this.setPriority(priority);
         this.startPosition = h;
         this.endPosition = startPosition + h;
-        this.scanner = scanner;
     }
 
     @Override
@@ -26,23 +23,18 @@ public class T2 extends Thread {
             Thread.sleep(1000);
 
             // Введення: B, MX
-            Main.S01.acquire();
-            System.out.print("\nEnter value for Matrix X: ");
-            int n = scanner.nextInt();
-
-            commonResources.vectorB = Data.fillReverseVector(commonResources.getN());
-            commonResources.matrixX = Data.fillMatrix(commonResources.getN(), n);
-            Main.S01.release();
+            commonResources.vectorB = Data.fillVector(commonResources.getN(), 1);
+            commonResources.matrixX = Data.fillMatrix(commonResources.getN(), 1);
 
             // Очікувати на закінчення введення даних в інших задачах
             Main.barrier1.await();
 
-            // Обчислення 1: mi = min(BH)
-            int scalarMi = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
+            // Обчислення 1: m2 = min(BH)
+            int scalarM2 = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
 
-            // Обчислення 2: m = min(m, mi)
-            if (scalarMi < commonResources.getM().get()) {
-                commonResources.getM().set(scalarMi);
+            // Обчислення 2: m = min(m, m2), КД 1
+            if (scalarM2 < commonResources.getM().get()) {
+                commonResources.getM().set(scalarM2);
             }
 
             // Сигнал задачам T1, T3, T4 про обчислення 2
@@ -53,23 +45,23 @@ public class T2 extends Thread {
             Main.S3.acquire();
             Main.S4.acquire();
 
-            // Копіювання: d1 = d
+            // Копіювання: d2 = d, КД 2
             Main.CS1.lock();
-            int scalarD1 = commonResources.scalarD;
+            int scalarD2 = commonResources.scalarD;
             Main.CS1.unlock();
 
-            // Копіювання: Z1 = Z
+            // Копіювання: Z2 = Z, КД 3
             Main.CS2.lock();
-            int[] vectorZ1 = commonResources.vectorZ;
+            int[] vectorZ2 = commonResources.vectorZ;
             Main.CS2.unlock();
 
-            // Копіювання: MM1 = MM
+            // Копіювання: MM2 = MM, КД 4
             Main.S02.acquire();
-            int[][] matrixM1 = commonResources.matrixM;
+            int[][] matrixM2 = commonResources.matrixM;
             Main.S02.release();
 
-            // Обчислення 3: RH = d1 * BH + Z1 * (MM1 * MXH)
-            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD1, Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB)), Data.vectorMatrixMultiply(vectorZ1, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.matrixX, startPosition, endPosition), matrixM1))));
+            // Обчислення 3: RH = d2 * BH + Z2 * (MM2 * MXH)
+            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD2, Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB)), Data.vectorMatrixMultiply(vectorZ2, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.matrixX, startPosition, endPosition), matrixM2))));
 
             // Обчислення 4: KH = sort(RH)
             commonResources.vectorKH1_1 = Data.sortVector(vectorRH);

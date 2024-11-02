@@ -20,11 +20,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Main {
     private static final int p = 4;
 
-    // Бар'єр для визначення закінчення даних
+    // Бар'єр для визначення закінчення введення даних
     public static final CyclicBarrier barrier1 = new CyclicBarrier(p);
-
-    // Семафора для керування доступом до введеня даних
-    public static final Semaphore S01 = new Semaphore(1);
 
     // Критична секція для керування доступом до спільного ресурсу d
     public static final Lock CS1 = new ReentrantLock();
@@ -65,9 +62,9 @@ public class Main {
             CommonResources commonResources = new CommonResources(n);
 
             Thread T1 = new T1("T1", commonResources, Thread.NORM_PRIORITY, h);
-            Thread T2 = new T2("T2", commonResources, Thread.NORM_PRIORITY, h, scanner);
+            Thread T2 = new T2("T2", commonResources, Thread.NORM_PRIORITY, h);
             Thread T3 = new T3("T3", commonResources, Thread.NORM_PRIORITY, h);
-            Thread T4 = new T4("T4", commonResources, Thread.NORM_PRIORITY, h, scanner);
+            Thread T4 = new T4("T4", commonResources, Thread.NORM_PRIORITY, h);
 
             long startTime = System.nanoTime();
 

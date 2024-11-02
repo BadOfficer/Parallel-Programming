@@ -21,16 +21,6 @@ public class Data {
         return vector;
     }
 
-    public static int[] fillReverseVector(int n) {
-        int[] vector = new int[n];
-
-        for (int i = 0; i < n; i++) {
-            vector[i] = n + - i;
-        }
-
-        return vector;
-    }
-
     public static int[] getPartOfVector(int startPosition, int endPosition, int[] vector) {
         int[] newVector = new int[endPosition - startPosition];
 

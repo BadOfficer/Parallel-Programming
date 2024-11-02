@@ -24,12 +24,12 @@ public class T1 extends Thread {
             // Чекати на введення даних в інших потоках
             Main.barrier1.await();
 
-            // Обчислення 1: mi = min(BH)
-            int scalarMi = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
+            // Обчислення 1: m1 = min(BH)
+            int scalarM1 = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
 
-            // Обчислення 2: m = min(m, mi)
-            if (scalarMi < commonResources.getM().get()) {
-                commonResources.getM().set(scalarMi);
+            // Обчислення 2: m = min(m, m1), КД 1
+            if (scalarM1 < commonResources.getM().get()) {
+                commonResources.getM().set(scalarM1);
             }
 
             // Сигнал задачам T2, T3, T4 про обчислення 2
@@ -40,17 +40,17 @@ public class T1 extends Thread {
             Main.S3.acquire();
             Main.S4.acquire();
 
-            // Копіювання: d1 = d
+            // Копіювання: d1 = d, КД 2
             Main.CS1.lock();
             int scalarD1 = commonResources.scalarD;
             Main.CS1.unlock();
 
-            // Копіювання: Z1 = Z
+            // Копіювання: Z1 = Z, КД 3
             Main.CS2.lock();
             int[] vectorZ1 = commonResources.vectorZ;
             Main.CS2.unlock();
 
-            // Копіювання: MM1 = MM
+            // Копіювання: MM1 = MM, КД 4
             Main.S02.acquire();
             int[][] matrixM1 = commonResources.matrixM;
             Main.S02.release();

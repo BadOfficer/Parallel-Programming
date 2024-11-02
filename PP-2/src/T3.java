@@ -22,12 +22,12 @@ public class T3 extends Thread {
             // Очікувати на закінчення введення даних в інших задачах
             Main.barrier1.await();
 
-            // Обчислення 1: mi = min(BH)
-            int scalarMi = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
+            // Обчислення 1: m3 = min(BH)
+            int scalarM3 = Data.getMinVectorValue(Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB));
 
-            // Обчислення 2: m = min(m, mi)
-            if (scalarMi < commonResources.getM().get()) {
-                commonResources.getM().set(scalarMi);
+            // Обчислення 2: m = min(m, m3), КД 1
+            if (scalarM3 < commonResources.getM().get()) {
+                commonResources.getM().set(scalarM3);
             }
 
             // Сигнал задачам T1, T2, T4 про обчислення 2
@@ -38,23 +38,23 @@ public class T3 extends Thread {
             Main.S2.acquire();
             Main.S4.acquire();
 
-            // Копіювання: d1 = d
+            // Копіювання: d3 = d, КД 2
             Main.CS1.lock();
-            int scalarD1 = commonResources.scalarD;
+            int scalarD3 = commonResources.scalarD;
             Main.CS1.unlock();
 
-            // Копіювання: Z1 = Z
+            // Копіювання: Z3 = Z, КД 3
             Main.CS2.lock();
-            int[] vectorZ1 = commonResources.vectorZ;
+            int[] vectorZ3 = commonResources.vectorZ;
             Main.CS2.unlock();
 
-            // Копіювання: MM1 = MM
+            // Копіювання: MM3 = MM, КД 4
             Main.S02.acquire();
-            int[][] matrixM1 = commonResources.matrixM;
+            int[][] matrixM3 = commonResources.matrixM;
             Main.S02.release();
 
-            // Обчислення 3: RH = d1 * BH + Z1 * (MM1 * MXH)
-            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD1, Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB)), Data.vectorMatrixMultiply(vectorZ1, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.matrixX, startPosition, endPosition), matrixM1))));
+            // Обчислення 3: RH = d3 * BH + Z3 * (MM3 * MXH)
+            int[] vectorRH = Data.vectorSum(Data.scalarVectorMultiply(scalarD3, Data.getPartOfVector(startPosition, endPosition, commonResources.vectorB)), Data.vectorMatrixMultiply(vectorZ3, Data.transposeMatrix(Data.matrixMultiply(Data.getPartOfMatrix(commonResources.matrixX, startPosition, endPosition), matrixM3))));
 
             // Обчислення 4: KH = sort(RH)
             int[] vectorKH = Data.sortVector(vectorRH);
